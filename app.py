@@ -9,12 +9,12 @@ from nltk.stem import WordNetLemmatizer
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
     page_title="Caption Studio",
-    page_icon="✨",
+    page_icon="🚀",
     layout="centered"
 )
 
-# ---------------- SAFE NLTK ----------------
-def safe_nltk_download():
+# ---------------- SAFE NLTK DOWNLOAD ----------------
+def safe_downloads():
     try:
         nltk.data.find("corpora/stopwords")
     except:
@@ -25,47 +25,56 @@ def safe_nltk_download():
     except:
         nltk.download("wordnet")
 
-safe_nltk_download()
+safe_downloads()
 
-# ---------------- UI ----------------
+# ---------------- UI STYLE (DARK + MODERN) ----------------
 st.markdown("""
 <style>
 .stApp {
     background: linear-gradient(135deg, #0b1220, #0f172a, #020617);
     color: #e5e7eb;
+    font-family: Arial;
 }
+
 h1 {
     text-align: center;
     color: white !important;
 }
+
 textarea {
     background-color: #0f172a !important;
     color: white !important;
     border-radius: 12px !important;
+    border: 1px solid #334155;
 }
+
 .stButton button {
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: white;
     border-radius: 10px;
+    padding: 10px;
+    font-weight: bold;
 }
+
 .card {
     background: rgba(255,255,255,0.06);
-    padding: 18px;
+    padding: 20px;
     border-radius: 14px;
     margin-top: 15px;
+    text-align: center;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ---------------- HEADER ----------------
-st.markdown("# ✨ Caption Studio")
-st.markdown("Turn ideas into meaningful AI captions 🌿")
+st.markdown("# 🚀 Caption Studio")
+st.markdown("Turn your ideas into **viral AI captions** ✨")
 
-text = st.text_area("💬 Enter your project description")
+text = st.text_area("💬 Enter your project description here:")
 
-generate = st.button("🌸 Generate Caption")
+generate = st.button("✨ Generate Viral Caption")
 
-# ---------------- BERT ----------------
+# ---------------- BERT MODEL ----------------
 @st.cache_resource
 def load_model():
     return pipeline("feature-extraction", model="bert-base-uncased")
@@ -86,7 +95,7 @@ def nlp_pipeline(text):
     lemmatizer = WordNetLemmatizer()
     lemmas = [lemmatizer.lemmatize(w) for w in filtered]
 
-    # keyword extraction (frequency-based)
+    # frequency-based keyword extraction
     freq = {}
     for w in lemmas:
         freq[w] = freq.get(w, 0) + 1
@@ -96,44 +105,47 @@ def nlp_pipeline(text):
 
     return tokens, filtered, lemmas, keywords
 
-# ---------------- CAPTION REWRITER (IMPORTANT FIX) ----------------
-def generate_natural_caption(text, keywords):
+# ---------------- VIRAL CAPTION ENGINE ----------------
+def generate_viral_caption(keywords):
 
-    # take original meaning + keywords blend
     key_phrase = " ".join(keywords)
 
-    templates = [
-        f"I built a project focused on {key_phrase}.",
-        f"This work explores {key_phrase} using modern AI techniques.",
-        f"A complete implementation involving {key_phrase}.",
-        f"A creative project built around {key_phrase}.",
-        f"This system demonstrates {key_phrase} in action.",
-        f"A hands-on project using {key_phrase} and AI."
+    captions = [
+        f"🚀 Just built this using {key_phrase} 🔥",
+        f"✨ From idea → reality with {key_phrase}",
+        f"💡 Not just code… it's innovation powered by {key_phrase}",
+        f"🔥 This project hits different: {key_phrase}",
+        f"🌿 Built with passion using {key_phrase} 💻",
+        f"⚡ AI in action: {key_phrase}",
+        f"💻 Small idea → big impact using {key_phrase}",
+        f"🌟 Turning concepts into reality with {key_phrase}",
+        f"🔥 Built. Tested. Shipped. ({key_phrase})",
+        f"🚀 Learning, building, repeating: {key_phrase}"
     ]
 
-    return random.choice(templates)
+    return random.choice(captions)
 
-# ---------------- MAIN ----------------
+# ---------------- MAIN APP ----------------
 if generate and text:
 
-    with st.spinner("Generating natural caption... 💭✨"):
+    with st.spinner("Creating your viral caption... 🚀✨"):
 
         tokens, filtered, lemmas, keywords = nlp_pipeline(text)
 
-        # BERT (kept as required, not heavily used yet)
+        # BERT (kept for project requirement)
         _ = bert(" ".join(lemmas))
 
-        caption = generate_natural_caption(text, keywords)
+        caption = generate_viral_caption(keywords)
 
     # ---------------- OUTPUT ----------------
     st.markdown(f"""
     <div class="card">
-        <h3>💬 Generated Caption</h3>
+        <h3>💬 Your Viral Caption</h3>
         <h2>{caption}</h2>
     </div>
     """, unsafe_allow_html=True)
 
-    # ---------------- NLP DETAILS ----------------
+    # ---------------- NLP INSIGHTS ----------------
     st.markdown("### 🌿 Behind the magic")
 
     with st.expander("🔤 Tokens"):
@@ -150,4 +162,4 @@ if generate and text:
 
 # ---------------- FOOTER ----------------
 st.markdown("---")
-st.markdown("💜 Caption Studio | NLP + BERT | Natural Caption Generator")
+st.markdown("💜 Caption Studio | NLP + BERT | Viral Caption Generator")
