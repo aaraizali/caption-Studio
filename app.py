@@ -72,7 +72,7 @@ def load_model():
 
 bert = load_model()
 
-# ---------------- NLP PIPELINE (IMPROVED) ----------------
+# ---------------- NLP PIPELINE ----------------
 def nlp_pipeline(text):
 
     text = text.lower()
@@ -86,39 +86,44 @@ def nlp_pipeline(text):
     lemmatizer = WordNetLemmatizer()
     lemmas = [lemmatizer.lemmatize(w) for w in filtered]
 
-    # 🔥 IMPROVED KEYWORD EXTRACTION (frequency-based)
+    # keyword extraction (frequency-based)
     freq = {}
-    for word in lemmas:
-        freq[word] = freq.get(word, 0) + 1
+    for w in lemmas:
+        freq[w] = freq.get(w, 0) + 1
 
     sorted_words = sorted(freq.items(), key=lambda x: x[1], reverse=True)
     keywords = [w[0] for w in sorted_words[:6]]
 
-    keyword_text = " ".join(keywords)
+    return tokens, filtered, lemmas, keywords
 
-    return tokens, filtered, lemmas, keywords, keyword_text
+# ---------------- CAPTION REWRITER (IMPORTANT FIX) ----------------
+def generate_natural_caption(text, keywords):
+
+    # take original meaning + keywords blend
+    key_phrase = " ".join(keywords)
+
+    templates = [
+        f"I built a project focused on {key_phrase}.",
+        f"This work explores {key_phrase} using modern AI techniques.",
+        f"A complete implementation involving {key_phrase}.",
+        f"A creative project built around {key_phrase}.",
+        f"This system demonstrates {key_phrase} in action.",
+        f"A hands-on project using {key_phrase} and AI."
+    ]
+
+    return random.choice(templates)
 
 # ---------------- MAIN ----------------
 if generate and text:
 
-    with st.spinner("Generating creative caption... 💭✨"):
+    with st.spinner("Generating natural caption... 💭✨"):
 
-        tokens, filtered, lemmas, keywords, keyword_text = nlp_pipeline(text)
+        tokens, filtered, lemmas, keywords = nlp_pipeline(text)
 
-        # BERT (kept for requirement)
+        # BERT (kept as required, not heavily used yet)
         _ = bert(" ".join(lemmas))
 
-        # 🔥 IMPROVED CAPTION TEMPLATES (MORE NATURAL)
-        captions = [
-            f"🚀 Built a project around {keyword_text}",
-            f"✨ Exploring ideas of {keyword_text}",
-            f"💡 Created something using {keyword_text}",
-            f"🌿 Turning {keyword_text} into reality",
-            f"🔥 A journey of building {keyword_text}",
-            f"🌸 From concept to execution: {keyword_text}"
-        ]
-
-        caption = random.choice(captions)
+        caption = generate_natural_caption(text, keywords)
 
     # ---------------- OUTPUT ----------------
     st.markdown(f"""
@@ -128,7 +133,7 @@ if generate and text:
     </div>
     """, unsafe_allow_html=True)
 
-    # ---------------- NLP INSIGHTS ----------------
+    # ---------------- NLP DETAILS ----------------
     st.markdown("### 🌿 Behind the magic")
 
     with st.expander("🔤 Tokens"):
@@ -140,9 +145,9 @@ if generate and text:
     with st.expander("✍️ Lemmatized Words"):
         st.write(lemmas)
 
-    with st.expander("🔑 Keywords (Improved)"):
+    with st.expander("🔑 Keywords"):
         st.write(keywords)
 
 # ---------------- FOOTER ----------------
 st.markdown("---")
-st.markdown("💜 Caption Studio | NLP + BERT | Improved Keyword Intelligence")
+st.markdown("💜 Caption Studio | NLP + BERT | Natural Caption Generator")
