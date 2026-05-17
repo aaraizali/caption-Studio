@@ -1,107 +1,74 @@
 import streamlit as st
+import nltk
 import random
 import string
-import nltk
-import numpy as np
 from transformers import pipeline
+from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-from sklearn.metrics.pairwise import cosine_similarity
 
-# ---------------- UI CONFIG ----------------
-st.set_page_config(page_title="Caption Studio AI", page_icon="🚀", layout="centered")
+# ---------------- SAFE DOWNLOADS ----------------
+nltk.download('punkt', quiet=True)
+nltk.download('stopwords', quiet=True)
+nltk.download('wordnet', quiet=True)
+
+# ---------------- UI ----------------
+st.set_page_config(page_title="Caption Generator", page_icon="🚀", layout="centered")
 
 st.title("🚀 AI Caption Generator")
-st.write("Turn ideas into **viral captions** using NLP + BERT ✨")
+st.write("Turn your ideas into **viral captions using NLP + BERT** ✨")
 
-# ---------------- LOAD ONLY ONCE (VERY IMPORTANT) ----------------
+# ---------------- LOAD BERT (NOT USED HEAVILY) ----------------
 @st.cache_resource
 def load_bert():
     return pipeline("feature-extraction", model="bert-base-uncased")
 
 bert = load_bert()
 
-# ---------------- NLP SETUP ----------------
-stop_words = set(stopwords.words("english"))
-lemmatizer = WordNetLemmatizer()
-
-# Words we NEVER want in captions (fixes your issue)
-NOISE_WORDS = {
-    "tokenization", "lemmatization", "stopword", "tagging",
-    "processing", "nlp", "model", "embedding", "dataset"
-}
-
-# ---------------- EMBEDDING ----------------
-def get_embedding(text):
-    return np.mean(bert(text)[0], axis=0)
-
-# ---------------- CLEAN NLP PIPELINE ----------------
+# ---------------- NLP PIPELINE ----------------
 def nlp_pipeline(text):
 
-    # clean text
     text = text.lower()
     text = text.translate(str.maketrans("", "", string.punctuation))
 
-    tokens = text.split()
+    tokens = word_tokenize(text)
 
-    # remove stopwords
+    stop_words = set(stopwords.words("english"))
     filtered = [w for w in tokens if w not in stop_words]
 
-    # lemmatize
+    lemmatizer = WordNetLemmatizer()
     lemmas = [lemmatizer.lemmatize(w) for w in filtered]
 
-    sentence_vec = get_embedding(" ".join(lemmas))
+    # simple keyword logic (BACK TO ORIGINAL STYLE)
+    keywords = lemmas[:5]
 
-    # limit words (speed + quality fix)
-    unique_words = list(set(lemmas))[:12]
+    return tokens, filtered, lemmas, keywords
 
-    scores = []
-    for word in unique_words:
-        vec = get_embedding(word)
-        score = cosine_similarity([sentence_vec], [vec])[0][0]
-        scores.append((word, score))
-
-    scores.sort(key=lambda x: x[1], reverse=True)
-
-    # remove NLP-noise words
-    keywords = []
-    for w, _ in scores:
-        if w not in NOISE_WORDS and len(w) > 2:
-            keywords.append(w)
-
-    # fallback
-    if len(keywords) < 3:
-        keywords = [w[0] for w in scores[:3]]
-
-    return tokens, filtered, lemmas, keywords[:5]
-
-# ---------------- VIRAL CAPTION ENGINE ----------------
+# ---------------- CAPTION ENGINE ----------------
 def generate_caption(keywords):
 
-    key = ", ".join(keywords)
+    key = " ".join(keywords)
 
     templates = [
-        f"🚀 Just built something amazing using {key}",
-        f"✨ Turning ideas into reality with {key}",
-        f"💡 Built different with {key}",
-        f"🔥 From concept to creation: {key}",
-        f"🌿 Creating magic with {key}",
-        f"⚡ AI-powered journey: {key}",
-        f"🚀 Learning, building, shipping: {key}",
-        f"💻 Modern AI build using {key}",
-        f"🌟 Small idea → big impact with {key}",
-        f"🔥 Code. Create. Innovate. ({key})"
+        f"🚀 Just built something amazing with {key}",
+        f"✨ Turning ideas into reality using {key}",
+        f"💡 Built with passion: {key}",
+        f"🔥 New AI project completed: {key}",
+        f"🌿 From idea to execution using {key}",
+        f"⚡ Learning & building with {key}",
+        f"🚀 Small idea → big impact: {key}",
+        f"💻 Crafted using modern AI tools: {key}",
+        f"🌟 Code. Create. Repeat. ({key})"
     ]
 
     return random.choice(templates)
 
 # ---------------- INPUT ----------------
-text = st.text_area("💬 Enter your idea / project description")
+text = st.text_area("💬 Enter your project description")
 
-# ---------------- BUTTON ----------------
-if st.button("✨ Generate Viral Caption") and text:
+if st.button("✨ Generate Caption") and text:
 
-    with st.spinner("Creating AI-powered caption... 🚀"):
+    with st.spinner("Generating caption... 🚀"):
 
         tokens, filtered, lemmas, keywords = nlp_pipeline(text)
         caption = generate_caption(keywords)
@@ -109,8 +76,7 @@ if st.button("✨ Generate Viral Caption") and text:
     # ---------------- OUTPUT ----------------
     st.success(caption)
 
-    # ---------------- DEBUG (CLEAN UI) ----------------
-    with st.expander("🔑 Keywords"):
+    with st.expander("🔍 Keywords"):
         st.write(keywords)
 
     with st.expander("🧠 Clean Words"):
@@ -121,4 +87,4 @@ if st.button("✨ Generate Viral Caption") and text:
 
 # ---------------- FOOTER ----------------
 st.markdown("---")
-st.markdown("💜 Built with NLP + BERT | Caption Studio AI 🚀")
+st.markdown("💜 Built with NLP + BERT | Clean Caption Generator 🚀")
