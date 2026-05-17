@@ -13,7 +13,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# ---------------- SAFE NLTK DOWNLOAD ----------------
+# ---------------- SAFE NLTK ----------------
 def safe_nltk_download():
     try:
         nltk.data.find("corpora/stopwords")
@@ -27,82 +27,57 @@ def safe_nltk_download():
 
 safe_nltk_download()
 
-# ---------------- UI DESIGN ----------------
+# ---------------- UI ----------------
 st.markdown("""
 <style>
-
 .stApp {
     background: linear-gradient(135deg, #0b1220, #0f172a, #020617);
     color: #e5e7eb;
 }
-
 h1 {
     text-align: center;
     color: white !important;
-    font-weight: 800;
 }
-
-.subtitle {
-    text-align: center;
-    color: #94a3b8;
-    margin-bottom: 20px;
-}
-
 textarea {
     background-color: #0f172a !important;
     color: white !important;
-    border-radius: 14px !important;
-    border: 1px solid #334155 !important;
+    border-radius: 12px !important;
 }
-
 .stButton button {
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: white;
-    border-radius: 12px;
-    padding: 0.6rem 1.2rem;
-    font-weight: 600;
-    border: none;
+    border-radius: 10px;
 }
-
-.stButton button:hover {
-    transform: scale(1.05);
-    box-shadow: 0px 0px 18px rgba(139,92,246,0.4);
-}
-
 .card {
     background: rgba(255,255,255,0.06);
-    padding: 20px;
-    border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.1);
-    margin-top: 20px;
+    padding: 18px;
+    border-radius: 14px;
+    margin-top: 15px;
 }
-
 </style>
 """, unsafe_allow_html=True)
 
 # ---------------- HEADER ----------------
 st.markdown("# ✨ Caption Studio")
-st.markdown("<div class='subtitle'>Turn your ideas into AI-powered captions 🌿</div>", unsafe_allow_html=True)
+st.markdown("Turn ideas into meaningful AI captions 🌿")
 
-# ---------------- INPUT ----------------
-text = st.text_area("💬 Describe your idea")
+text = st.text_area("💬 Enter your project description")
 
 generate = st.button("🌸 Generate Caption")
 
-# ---------------- LOAD BERT ----------------
+# ---------------- BERT ----------------
 @st.cache_resource
 def load_model():
     return pipeline("feature-extraction", model="bert-base-uncased")
 
 bert = load_model()
 
-# ---------------- NLP PIPELINE (FIXED) ----------------
+# ---------------- NLP PIPELINE (IMPROVED) ----------------
 def nlp_pipeline(text):
 
     text = text.lower()
     text = text.translate(str.maketrans("", "", string.punctuation))
 
-    # ✅ SAFE TOKENIZATION (NO NLTK ERROR)
     tokens = text.split()
 
     stop_words = set(stopwords.words("english"))
@@ -111,32 +86,41 @@ def nlp_pipeline(text):
     lemmatizer = WordNetLemmatizer()
     lemmas = [lemmatizer.lemmatize(w) for w in filtered]
 
-    keywords = lemmas[:5]
+    # 🔥 IMPROVED KEYWORD EXTRACTION (frequency-based)
+    freq = {}
+    for word in lemmas:
+        freq[word] = freq.get(word, 0) + 1
+
+    sorted_words = sorted(freq.items(), key=lambda x: x[1], reverse=True)
+    keywords = [w[0] for w in sorted_words[:6]]
+
     keyword_text = " ".join(keywords)
 
     return tokens, filtered, lemmas, keywords, keyword_text
 
-# ---------------- MAIN LOGIC ----------------
+# ---------------- MAIN ----------------
 if generate and text:
 
-    with st.spinner("Generating your caption... 💭✨"):
+    with st.spinner("Generating creative caption... 💭✨"):
 
         tokens, filtered, lemmas, keywords, keyword_text = nlp_pipeline(text)
 
-        # BERT (kept as required)
+        # BERT (kept for requirement)
         _ = bert(" ".join(lemmas))
 
+        # 🔥 IMPROVED CAPTION TEMPLATES (MORE NATURAL)
         captions = [
-            f"🌿 Built around {keyword_text}",
-            f"✨ Creative idea: {keyword_text}",
-            f"💡 Innovation through {keyword_text}",
-            f"🚀 Bringing {keyword_text} to life",
-            f"🌸 From thought to reality: {keyword_text}"
+            f"🚀 Built a project around {keyword_text}",
+            f"✨ Exploring ideas of {keyword_text}",
+            f"💡 Created something using {keyword_text}",
+            f"🌿 Turning {keyword_text} into reality",
+            f"🔥 A journey of building {keyword_text}",
+            f"🌸 From concept to execution: {keyword_text}"
         ]
 
         caption = random.choice(captions)
 
-    # ---------------- OUTPUT CARD ----------------
+    # ---------------- OUTPUT ----------------
     st.markdown(f"""
     <div class="card">
         <h3>💬 Generated Caption</h3>
@@ -144,21 +128,21 @@ if generate and text:
     </div>
     """, unsafe_allow_html=True)
 
-    # ---------------- NLP DETAILS ----------------
+    # ---------------- NLP INSIGHTS ----------------
     st.markdown("### 🌿 Behind the magic")
 
     with st.expander("🔤 Tokens"):
         st.write(tokens)
 
-    with st.expander("🚫 Clean Words"):
+    with st.expander("🚫 Filtered Words"):
         st.write(filtered)
 
     with st.expander("✍️ Lemmatized Words"):
         st.write(lemmas)
 
-    with st.expander("🔑 Keywords"):
+    with st.expander("🔑 Keywords (Improved)"):
         st.write(keywords)
 
 # ---------------- FOOTER ----------------
 st.markdown("---")
-st.markdown("💜 Caption Studio | NLP + BERT | Streamlit Project")
+st.markdown("💜 Caption Studio | NLP + BERT | Improved Keyword Intelligence")
