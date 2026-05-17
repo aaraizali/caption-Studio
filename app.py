@@ -27,7 +27,10 @@ def safe_downloads():
 
 safe_downloads()
 
-# ---------------- UI STYLE (DARK + MODERN) ----------------
+stop_words = set(stopwords.words("english"))
+lemmatizer = WordNetLemmatizer()
+
+# ---------------- UI STYLE (UNCHANGED) ----------------
 st.markdown("""
 <style>
 .stApp {
@@ -66,8 +69,8 @@ textarea {
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- HEADER ----------------
-st.markdown("# 🚀 Caption Studio")
+# ---------------- HEADER (UNCHANGED) ----------------
+st.markdown("# ✨Caption Studio")
 st.markdown("Turn your ideas into **viral AI captions** ✨")
 
 text = st.text_area("💬 Enter your project description here:")
@@ -89,41 +92,84 @@ def nlp_pipeline(text):
 
     tokens = text.split()
 
-    stop_words = set(stopwords.words("english"))
     filtered = [w for w in tokens if w not in stop_words]
 
-    lemmatizer = WordNetLemmatizer()
     lemmas = [lemmatizer.lemmatize(w) for w in filtered]
 
-    # frequency-based keyword extraction
     freq = {}
     for w in lemmas:
-        freq[w] = freq.get(w, 0) + 1
+        if len(w) > 2:
+            freq[w] = freq.get(w, 0) + 1
 
     sorted_words = sorted(freq.items(), key=lambda x: x[1], reverse=True)
-    keywords = [w[0] for w in sorted_words[:6]]
 
-    return tokens, filtered, lemmas, keywords
+    BAD_WORDS = {
+        "text", "student", "often", "using", "make",
+        "build", "created", "project", "work"
+    }
+
+    keywords = []
+    for w, _ in sorted_words:
+        if w not in BAD_WORDS:
+            keywords.append(w)
+
+    return tokens, filtered, lemmas, keywords[:5]
+
+# ---------------- SMART CATEGORY DETECTION ----------------
+def detect_category(text, keywords):
+
+    text = text.lower()
+
+    tech = {"ai", "python", "code", "app", "streamlit", "model", "data", "ml", "system"}
+    study = {"study", "exam", "student", "learn", "learning", "stress", "school"}
+    motivation = {"life", "dream", "goal", "success", "journey", "grow"}
+
+    score_tech = sum(1 for w in keywords if w in tech or w in text)
+    score_study = sum(1 for w in keywords if w in study or w in text)
+    score_motivation = sum(1 for w in keywords if w in motivation or w in text)
+
+    if score_tech >= score_study and score_tech >= score_motivation:
+        return "tech"
+    elif score_study >= score_tech and score_study >= score_motivation:
+        return "study"
+    else:
+        return "motivation"
 
 # ---------------- VIRAL CAPTION ENGINE ----------------
-def generate_viral_caption(keywords):
+def generate_viral_caption(keywords, category):
 
-    key_phrase = " ".join(keywords)
+    key_phrase = " ".join(keywords[:4])
 
-    captions = [
-        f"🚀 Just built this using {key_phrase} 🔥",
-        f"✨ From idea → reality with {key_phrase}",
-        f"💡 Not just code… it's innovation powered by {key_phrase}",
-        f"🔥 This project hits different: {key_phrase}",
-        f"🌿 Built with passion using {key_phrase} 💻",
-        f"⚡ AI in action: {key_phrase}",
-        f"💻 Small idea → big impact using {key_phrase}",
-        f"🌟 Turning concepts into reality with {key_phrase}",
-        f"🔥 Built. Tested. Shipped. ({key_phrase})",
-        f"🚀 Learning, building, repeating: {key_phrase}"
+    tech_captions = [
+        f"🚀 Built a next-gen system using {key_phrase}",
+        f"💻 Turning code into innovation with {key_phrase}",
+        f"⚡ Engineering ideas into reality: {key_phrase}",
+        f"🔥 AI-powered build using {key_phrase}",
+        f"🌐 From logic to launch: {key_phrase}"
     ]
 
-    return random.choice(captions)
+    study_captions = [
+        f"📚 Learning journey powered by {key_phrase}",
+        f"🧠 Turning stress into growth: {key_phrase}",
+        f"🌱 Every step builds strength with {key_phrase}",
+        f"💡 Studying smarter using {key_phrase}",
+        f"🎯 Progress over perfection: {key_phrase}"
+    ]
+
+    motivation_captions = [
+        f"🌟 Life moves forward with {key_phrase}",
+        f"🔥 Growth comes from {key_phrase}",
+        f"💪 Building dreams with {key_phrase}",
+        f"🚀 Keep pushing with {key_phrase}",
+        f"✨ Turning ideas into reality: {key_phrase}"
+    ]
+
+    if category == "tech":
+        return random.choice(tech_captions)
+    elif category == "study":
+        return random.choice(study_captions)
+    else:
+        return random.choice(motivation_captions)
 
 # ---------------- MAIN APP ----------------
 if generate and text:
@@ -132,10 +178,11 @@ if generate and text:
 
         tokens, filtered, lemmas, keywords = nlp_pipeline(text)
 
-        # BERT (kept for project requirement)
+        # BERT kept (requirement only)
         _ = bert(" ".join(lemmas))
 
-        caption = generate_viral_caption(keywords)
+        category = detect_category(text, keywords)
+        caption = generate_viral_caption(keywords, category)
 
     # ---------------- OUTPUT ----------------
     st.markdown(f"""
@@ -162,4 +209,4 @@ if generate and text:
 
 # ---------------- FOOTER ----------------
 st.markdown("---")
-st.markdown("💜 Caption Studio | NLP + BERT | Viral Caption Generator 🚀")
+st.markdown("💜 Caption Studio | NLP + BERT | Smart Viral Generator 🚀")
