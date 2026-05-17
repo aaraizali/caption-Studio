@@ -9,7 +9,7 @@ from nltk.stem import WordNetLemmatizer
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
     page_title="Caption Studio",
-    page_icon="🚀",
+    page_icon="✨",
     layout="centered"
 )
 
