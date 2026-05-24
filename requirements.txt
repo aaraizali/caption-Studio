@@ -2,3 +2,6 @@ streamlit
 nltk
 transformers
 torch
+scikit-learn
+numpy
+pandas
